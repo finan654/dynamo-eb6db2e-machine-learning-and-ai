@@ -1,0 +1,6 @@
+{
+    "fault_detected": false,
+    "p_fault": 0.3,
+    "confidence_lower": 0.3,
+    "confidence_upper": 0.3
+}
