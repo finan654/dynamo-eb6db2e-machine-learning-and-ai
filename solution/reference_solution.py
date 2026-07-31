@@ -49,6 +49,8 @@ popt2, pcov = curve_fit(model2, t_obs, x_obs,
                         p0=[popt1[0], popt1[1], popt1[2], popt1[3], 1.0, 0.3, omega2_guess, 0.0])
 
 # 6. Normalize signs (A >= 0, phi in [0, 2pi))
+# Note: pcov corresponds to the raw popt2 before normalization. 
+# Normalization ensures A >=0 and phi in [0,2pi), but leaves the model's final curve invariant.
 for i in range(0, 8, 4):
     if popt2[i] < 0:
         popt2[i] *= -1
@@ -70,8 +72,9 @@ with open('app/models/fault_detector.pkl', 'rb') as f:
     clf = pickle.load(f)
 p_fault = clf.predict_proba(features)[0, 1]
 
-# 10. Uncertainty Propagation (Pinned RNG)
-samples = rng.multivariate_normal(popt2, pcov, size=500)
+# 10. Uncertainty Propagation (Pinned RNG & Pinned Matrix Decomposition)
+# Added method='cholesky' to fix sign-flip ambiguities in SVD across near-identical pcovs.
+samples = rng.multivariate_normal(popt2, pcov, size=500, method='cholesky')
 probs = []
 for params in samples:
     x_sample = x_full.copy()
